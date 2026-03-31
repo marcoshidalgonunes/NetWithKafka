@@ -43,12 +43,7 @@ services:
         - 5432:5432
     volumes:
         - ./postgres/postgres.conf:/home/config/postgres.conf
-        - ./postgres/create_balance_table.sql:/docker-entrypoint-initdb.d/01_create_balance_table.sql
-        - ./postgres/create_transaction_table.sql:/docker-entrypoint-initdb.d/02_create_transaction_table.sql
-        - ./postgres/get_balance.sql:/docker-entrypoint-initdb.d/03_get_balance.sql
-        - ./postgres/update_balance.sql:/docker-entrypoint-initdb.d/04_update_balance.sql
-        - ./postgres/process_transaction_stored_procedure.sql:/docker-entrypoint-initdb.d/05_process_transaction.sql
-        - postgresdata:/var/lib/postgresql/data
+        - postgresdata:/var/lib/postgresql
     healthcheck:
         test: ['CMD-SHELL', 'pg_isready']
         interval: 10s

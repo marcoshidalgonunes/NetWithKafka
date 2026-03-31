@@ -1,3 +1,4 @@
+using System.Data;
 using Npgsql;
 using Transactions.Worker.Models;
 
@@ -16,21 +17,24 @@ public sealed class BalanceRepository
 
     public async Task<Balance?> GetBalanceAsync(string accountId, CancellationToken cancellationToken = default)
     {
-        const string sql = "CALL get_balance(@p_accountId, @p_amount, @p_blocked)";
+        const string sql = "get_balance";
 
         await using var conn = new NpgsqlConnection(_configuration.GetConnectionString("BankAccounts"));
         await conn.OpenAsync(cancellationToken);
 
         await using var cmd = new NpgsqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("p_accountId", accountId);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue(accountId);
 
-        var amountParam = new NpgsqlParameter("p_amount", NpgsqlTypes.NpgsqlDbType.Numeric)
+        var amountParam = new NpgsqlParameter
         {
-            Direction = System.Data.ParameterDirection.Output
+            NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Numeric,
+            Direction = ParameterDirection.Output
         };
-        var blockedParam = new NpgsqlParameter("p_blocked", NpgsqlTypes.NpgsqlDbType.Boolean)
+        var blockedParam = new NpgsqlParameter
         {
-            Direction = System.Data.ParameterDirection.Output
+            NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Boolean,
+            Direction = ParameterDirection.Output
         };
 
         cmd.Parameters.Add(amountParam);

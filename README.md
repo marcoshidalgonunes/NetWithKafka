@@ -1,4 +1,4 @@
-# BffUsingKafka
+# NetWithKafka
 
 Example of a .NET 8 BFF communicating with Kafka-backed transaction processors and PostgreSQL.
 
@@ -15,20 +15,20 @@ Example of a .NET 8 BFF communicating with Kafka-backed transaction processors a
 - `bff/Transactions.Bff.csproj`
 - `worker/Transactions.Worker.csproj`
 - `backend/Transactions.Backend.csproj`
-- `BffUsingKafka.sln`
+- `NetWithKafka.sln`
 
 ## Local development
 
 Build the full solution:
 
 ```bash
-dotnet build BffUsingKafka.sln
+dotnet build NetWithKafka.sln
 ```
 
 Run tests:
 
 ```bash
-dotnet test BffUsingKafka.sln
+dotnet test NetWithKafka.sln
 ```
 
 Run services individually:
