@@ -3,14 +3,10 @@ using Transactions.Worker.Repositories;
 using Transactions.Worker.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
+var configuration = builder.Configuration;
 
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables();
-
-builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection("Kafka"));
-builder.Services.Configure<WorkerOptions>(builder.Configuration.GetSection("Worker"));
+builder.Services.Configure<KafkaOptions>(configuration.GetSection("Kafka"));
+builder.Services.Configure<WorkerOptions>(configuration.GetSection("Worker"));
 
 builder.Services.AddSingleton<BalanceRepository>();
 builder.Services.AddSingleton<BalanceCalculatorFactory>();
