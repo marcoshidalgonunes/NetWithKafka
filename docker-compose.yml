@@ -26,15 +26,20 @@ services:
         KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
         KAFKA_SECURITY_PROTOCOL: PLAINTEXT
     healthcheck:
-        test: echo srvr | nc kafka 9092 || exit 1
-        interval: 5s
-        retries: 10
+      test:
+        [
+          "CMD-SHELL",
+          "bash -c 'echo > /dev/tcp/127.0.0.1/9092' || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
   
   postgres:
     image: postgres:latest
     container_name: postgres
     environment:
-        POSTGRES_PASSWORD: postgres
         POSTGRES_HOST_AUTH_METHOD: trust        
     command: postgres -c config_file=/home/config/postgres.conf
     networks:
@@ -52,15 +57,13 @@ services:
 
   bff:
     container_name: bff 
-    image: ${DOCKER_REGISTRY-}transactions-bff
+    image: ${DOCKER_REGISTRY-}transactions_net-bff
     build:
       context: ./bff/.
       dockerfile: Dockerfile
     depends_on:
       kafka:
         condition: service_healthy
-    links:
-      - kafka
     networks:
       - lan-network
     ports:
@@ -73,7 +76,7 @@ services:
 
   worker:
     container_name: worker 
-    image: ${DOCKER_REGISTRY-}transactions-worker
+    image: ${DOCKER_REGISTRY-}transactions_net-worker
     build:
       context: ./worker/.
       dockerfile: Dockerfile
@@ -82,15 +85,12 @@ services:
         condition: service_healthy           
       postgres:
         condition: service_healthy         
-    links:
-      - bff
-      - postgres
     networks:
       - lan-network
 
   backend:
     container_name: backend
-    image: ${DOCKER_REGISTRY-}transactions-backend
+    image: ${DOCKER_REGISTRY-}transactions_net-backend
     profiles:
       - backend
     build:
@@ -101,9 +101,6 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    links:
-      - kafka
-      - postgres
     networks:
       - lan-network
 
