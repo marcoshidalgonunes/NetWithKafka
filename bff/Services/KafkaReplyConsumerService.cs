@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
+using Transactions.Bff.Infrastructure;
 using Transactions.Bff.Models;
 using Transactions.Bff.Options;
 
@@ -58,7 +59,7 @@ public sealed class KafkaReplyConsumerService : BackgroundService
                 }
 
                 var correlationId = Encoding.UTF8.GetString(correlationHeader.GetValueBytes());
-                var transaction = JsonSerializer.Deserialize<Transaction>(result.Message.Value);
+                var transaction = JsonSerializer.Deserialize<Transaction>(result.Message.Value, BffJson.Options);
                 if (transaction is null)
                 {
                     _logger.LogWarning("Failed to deserialize transaction reply for correlationId {CorrelationId}", correlationId);
