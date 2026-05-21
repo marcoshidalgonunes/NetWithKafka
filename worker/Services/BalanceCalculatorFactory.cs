@@ -28,7 +28,7 @@ public sealed class BalanceCalculatorFactory
             var balance = await _balanceRepository.GetBalanceAsync(accountId, cancellationToken);
             if (balance is null)
             {
-                return new BalanceBlocked("ERROR", accountId, _blockedLogger);
+                return new BalanceBlocked("INVALID", accountId, _blockedLogger);
             }
 
             if (balance.Blocked)
