@@ -35,7 +35,7 @@ public sealed class TransactionService : ITransactionService
         var kafkaMessage = new Message<string, string>
         {
             Key = correlationId,
-            Value = JsonSerializer.Serialize(payload),
+            Value = JsonSerializer.Serialize(payload, JsonOptions.Serialization),
             Headers = new Headers
             {
                 { "correlationId", Encoding.UTF8.GetBytes(correlationId) },

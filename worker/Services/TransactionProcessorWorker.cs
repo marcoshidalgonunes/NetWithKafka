@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
-using Transactions.Worker.Infrastructure;
 using Transactions.Worker.Models;
 using Transactions.Worker.Options;
 
@@ -97,7 +96,7 @@ public sealed class TransactionProcessorWorker : BackgroundService
         CancellationToken cancellationToken)
     {
         var key = consumedRecord.Message.Key;
-        var transaction = JsonSerializer.Deserialize<Transaction>(consumedRecord.Message.Value, WorkerJson.Options);
+        var transaction = JsonSerializer.Deserialize<Transaction>(consumedRecord.Message.Value, JsonOptions.Serialization);
         if (transaction is null)
         {
             _logger.LogWarning("Consumed null/invalid payload from Kafka: {Payload}", consumedRecord.Message.Value);
@@ -118,7 +117,7 @@ public sealed class TransactionProcessorWorker : BackgroundService
             transaction.Status = status;
         }
 
-        var response = JsonSerializer.Serialize(transaction, WorkerJson.Options);
+        var response = JsonSerializer.Serialize(transaction, JsonOptions.Serialization);
         var outMsg = new Message<string, string>
         {
             Key = key,
