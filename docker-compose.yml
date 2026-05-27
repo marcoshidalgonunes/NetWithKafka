@@ -67,9 +67,9 @@ services:
     networks:
       - lan-network
     ports:
-      - 8080:8080
+      - 8081:8081
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -97,12 +97,17 @@ services:
       context: ./backend/.
       dockerfile: Dockerfile
     depends_on:
-      kafka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
     networks:
       - lan-network
+    ports:
+      - 8083:8083
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgresdata:

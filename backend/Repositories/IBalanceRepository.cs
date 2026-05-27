@@ -1,6 +1,9 @@
+using Transactions.Backend.Models;
+
 namespace Transactions.Backend.Repositories;
 
 public interface IBalanceRepository
 {
-    Task<string> ProcessTransactionAsync(int accountId, int transactionId, decimal amount, CancellationToken cancellationToken = default);
+    Task<Balance?> GetBalanceAsync(string accountId, CancellationToken cancellationToken = default);
+    Task<bool> UpdateBalanceAsync(string accountId, decimal newAmount, CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,7 @@
+using System.Data;
 using Npgsql;
+using NpgsqlTypes;
+using Transactions.Backend.Models;
 
 namespace Transactions.Backend.Repositories;
 
@@ -13,27 +16,63 @@ public sealed class BalanceRepository : IBalanceRepository
         _logger = logger;
     }
 
-    public async Task<string> ProcessTransactionAsync(int accountId, int transactionId, decimal amount, CancellationToken cancellationToken = default)
+    public async Task<Balance?> GetBalanceAsync(string accountId, CancellationToken cancellationToken = default)
     {
-        const string sql = "SELECT process_transaction(@p_accountId, @p_transactionId, @p_amount)";
-
         await using var conn = new NpgsqlConnection(_configuration.GetConnectionString("BankAccounts"));
         await conn.OpenAsync(cancellationToken);
 
-        await using var cmd = new NpgsqlCommand(sql, conn);
+        await using var cmd = new NpgsqlCommand("get_balance", conn)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
         cmd.Parameters.AddWithValue("p_accountId", accountId);
-        cmd.Parameters.AddWithValue("p_transactionId", transactionId);
-        cmd.Parameters.AddWithValue("p_amount", amount);
+
+        var amountParam = new NpgsqlParameter("p_amount", NpgsqlDbType.Numeric) { Direction = ParameterDirection.InputOutput, Value = 0m };
+        var blockedParam = new NpgsqlParameter("p_blocked", NpgsqlDbType.Boolean) { Direction = ParameterDirection.InputOutput, Value = false };
+
+        cmd.Parameters.Add(amountParam);
+        cmd.Parameters.Add(blockedParam);
 
         try
         {
-            var result = await cmd.ExecuteScalarAsync(cancellationToken);
-            return result?.ToString() ?? "ERROR";
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+            return new Balance
+            {
+                AccountId = accountId,
+                Amount = (decimal)amountParam.Value!,
+                Blocked = (bool)blockedParam.Value!
+            };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling process_transaction");
-            return "ERROR";
+            _logger.LogError(ex, "Error calling get_balance for accountId {AccountId}", accountId);
+            return null;
+        }
+    }
+
+    public async Task<bool> UpdateBalanceAsync(string accountId, decimal newAmount, CancellationToken cancellationToken = default)
+    {
+        await using var conn = new NpgsqlConnection(_configuration.GetConnectionString("BankAccounts"));
+        await conn.OpenAsync(cancellationToken);
+
+        await using var cmd = new NpgsqlCommand("update_balance", conn)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        cmd.Parameters.AddWithValue("p_accountId", accountId);
+        cmd.Parameters.AddWithValue("p_newAmount", newAmount);
+
+        try
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling update_balance for accountId {AccountId}", accountId);
+            return false;
         }
     }
 }
