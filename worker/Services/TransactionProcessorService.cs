@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
@@ -7,23 +6,23 @@ using Transactions.Worker.Options;
 
 namespace Transactions.Worker.Services;
 
-public sealed class TransactionProcessorWorker : BackgroundService
+public sealed class TransactionProcessorService : BackgroundService
 {
     private readonly KafkaOptions _kafkaOptions;
     private readonly WorkerOptions _workerOptions;
     private readonly BalanceCalculatorFactory _balanceCalculatorFactory;
-    private readonly ILogger<TransactionProcessorWorker> _logger;
+    private readonly ILogger<TransactionProcessorService> _logger;
 
     private readonly object _updateLock = new();
     private int _transactionsCounter;
     private DateTimeOffset? _batchStart;
     private IBalanceCalculator? _balanceCalculator;
 
-    public TransactionProcessorWorker(
+    public TransactionProcessorService(
         IOptions<KafkaOptions> kafkaOptions,
         IOptions<WorkerOptions> workerOptions,
         BalanceCalculatorFactory balanceCalculatorFactory,
-        ILogger<TransactionProcessorWorker> logger)
+        ILogger<TransactionProcessorService> logger)
     {
         _kafkaOptions = kafkaOptions.Value;
         _workerOptions = workerOptions.Value;

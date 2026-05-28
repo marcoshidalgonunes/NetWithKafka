@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using Transactions.Worker.Repositories;
+using Transactions.Worker.Clients;
 using Transactions.Worker.Services;
 using Xunit;
 
@@ -8,10 +8,10 @@ namespace Transactions.Worker.Tests;
 
 public sealed class BalanceCalculatorTests
 {
-    private static BalanceRepository CreateRepository()
+    private static BalanceClient CreateRepository()
     {
         var config = Mock.Of<Microsoft.Extensions.Configuration.IConfiguration>();
-        var logger = Mock.Of<ILogger<BalanceRepository>>();
+        var logger = Mock.Of<ILogger<BalanceClient>>();
         return new BalanceRepository(config, logger);
     }
 

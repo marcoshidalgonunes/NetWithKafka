@@ -1,21 +1,21 @@
-using Transactions.Worker.Repositories;
+using Transactions.Worker.Clients;
 
 namespace Transactions.Worker.Services;
 
 public sealed class BalanceCalculatorFactory
 {
-    private readonly BalanceRepository _balanceRepository;
+    private readonly IBalanceClient _balanceClient;
     private readonly ILogger<BalanceCalculatorFactory> _logger;
     private readonly ILogger<BalanceBlocked> _blockedLogger;
     private readonly ILogger<BalanceCalculator> _calculatorLogger;
 
     public BalanceCalculatorFactory(
-        BalanceRepository balanceRepository,
+        IBalanceClient balanceClient,
         ILogger<BalanceCalculatorFactory> logger,
         ILogger<BalanceBlocked> blockedLogger,
         ILogger<BalanceCalculator> calculatorLogger)
     {
-        _balanceRepository = balanceRepository;
+        _balanceClient = balanceClient;
         _logger = logger;
         _blockedLogger = blockedLogger;
         _calculatorLogger = calculatorLogger;
@@ -25,7 +25,7 @@ public sealed class BalanceCalculatorFactory
     {
         try
         {
-            var balance = await _balanceRepository.GetBalanceAsync(accountId, cancellationToken);
+            var balance = await _balanceClient.GetBalanceAsync(accountId, cancellationToken);
             if (balance is null)
             {
                 return new BalanceBlocked("INVALID", accountId, _blockedLogger);
@@ -36,7 +36,7 @@ public sealed class BalanceCalculatorFactory
                 return new BalanceBlocked("BLOCKED", accountId, _blockedLogger);
             }
 
-            return new BalanceCalculator(_balanceRepository, accountId, balance.Amount, _calculatorLogger);
+            return new BalanceCalculator(_balanceClient, accountId, balance.Amount, _calculatorLogger);
         }
         catch (Exception ex)
         {

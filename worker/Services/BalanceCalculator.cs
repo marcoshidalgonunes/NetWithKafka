@@ -1,17 +1,17 @@
-using Transactions.Worker.Repositories;
+using Transactions.Worker.Clients;
 
 namespace Transactions.Worker.Services;
 
 public sealed class BalanceCalculator : IBalanceCalculator
 {
-    private readonly BalanceRepository _balanceRepository;
+    private readonly IBalanceClient _balanceClient;
     private readonly string _accountId;
     private readonly ILogger<BalanceCalculator> _logger;
     private decimal _balance;
 
-    public BalanceCalculator(BalanceRepository balanceRepository, string accountId, decimal balance, ILogger<BalanceCalculator> logger)
+    public BalanceCalculator(IBalanceClient balanceClient, string accountId, decimal balance, ILogger<BalanceCalculator> logger)
     {
-        _balanceRepository = balanceRepository;
+        _balanceClient = balanceClient;
         _accountId = accountId;
         _balance = balance;
         _logger = logger;
@@ -36,7 +36,7 @@ public sealed class BalanceCalculator : IBalanceCalculator
         _logger.LogInformation("Updating balance for account Id '{AccountId}' to {Balance}", _accountId, _balance);
         try
         {
-            await _balanceRepository.UpdateBalanceAsync(_accountId, _balance, cancellationToken);
+            await _balanceClient.UpdateBalanceAsync(_accountId, _balance, cancellationToken);
         }
         catch (Exception ex)
         {
