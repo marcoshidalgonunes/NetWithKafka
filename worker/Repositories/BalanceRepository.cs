@@ -1,5 +1,6 @@
 using System.Data;
 using Npgsql;
+using NpgsqlTypes;
 using Transactions.Worker.Models;
 
 namespace Transactions.Worker.Repositories;
@@ -22,23 +23,27 @@ public sealed class BalanceRepository
         await using var conn = new NpgsqlConnection(_configuration.GetConnectionString("BankAccounts"));
         await conn.OpenAsync(cancellationToken);
 
-        await using var cmd = new NpgsqlCommand(sql, conn);
-        cmd.CommandType = CommandType.StoredProcedure;
-        cmd.Parameters.AddWithValue(accountId);
-
+        await using var cmd = new NpgsqlCommand(sql, conn)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+        
         var amountParam = new NpgsqlParameter
         {
-            NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Numeric,
+            NpgsqlDbType = NpgsqlDbType.Numeric,
             Direction = ParameterDirection.Output
         };
         var blockedParam = new NpgsqlParameter
         {
-            NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Boolean,
+            NpgsqlDbType = NpgsqlDbType.Boolean,
             Direction = ParameterDirection.Output
         };
 
-        cmd.Parameters.Add(amountParam);
-        cmd.Parameters.Add(blockedParam);
+        var parameters = cmd.Parameters;
+
+        parameters.AddWithValue(accountId);
+        parameters.Add(amountParam);
+        parameters.Add(blockedParam);
 
         try
         {
@@ -65,14 +70,19 @@ public sealed class BalanceRepository
 
     public async Task<bool> UpdateBalanceAsync(string accountId, decimal newAmount, CancellationToken cancellationToken = default)
     {
-        const string sql = "CALL update_balance(@p_accountId, @p_newAmount)";
+        const string sql = "update_balance";
 
         await using var conn = new NpgsqlConnection(_configuration.GetConnectionString("BankAccounts"));
         await conn.OpenAsync(cancellationToken);
 
-        await using var cmd = new NpgsqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("p_accountId", accountId);
-        cmd.Parameters.AddWithValue("p_newAmount", newAmount);
+        await using var cmd = new NpgsqlCommand(sql, conn) { 
+            CommandType = CommandType.StoredProcedure 
+        };
+
+        var parameters = cmd.Parameters;
+
+        parameters.AddWithValue(accountId);
+        parameters.AddWithValue(newAmount);
 
         try
         {
