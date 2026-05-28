@@ -7,24 +7,16 @@ using Transactions.Bff.Options;
 
 namespace Transactions.Bff.Services;
 
-public sealed class TransactionService : ITransactionService
+public sealed class TransactionService(
+    IProducer<string, string> producer,
+    KafkaCorrelationStore store,
+    IOptions<KafkaOptions> options,
+    ILogger<TransactionService> logger) : ITransactionService
 {
-    private readonly IProducer<string, string> _producer;
-    private readonly KafkaCorrelationStore _store;
-    private readonly KafkaOptions _options;
-    private readonly ILogger<TransactionService> _logger;
-
-    public TransactionService(
-        IProducer<string, string> producer,
-        KafkaCorrelationStore store,
-        IOptions<KafkaOptions> options,
-        ILogger<TransactionService> logger)
-    {
-        _producer = producer;
-        _store = store;
-        _options = options.Value;
-        _logger = logger;
-    }
+    private readonly IProducer<string, string> _producer = producer;
+    private readonly KafkaCorrelationStore _store = store;
+    private readonly KafkaOptions _options = options.Value;
+    private readonly ILogger<TransactionService> _logger = logger;
 
     public async Task<Transaction?> SendAndReceiveAsync(Transaction payload, CancellationToken cancellationToken = default)
     {

@@ -6,18 +6,11 @@ using Transactions.Worker.Options;
 
 namespace Transactions.Worker.Clients;
 
-public sealed class BalanceClient : IBalanceClient
+public sealed class BalanceClient(IHttpClientFactory httpClientFactory, IOptions<BackendOptions> backendOptions, ILogger<BalanceClient> logger) : IBalanceClient
 {
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly string _baseUrl;
-    private readonly ILogger<BalanceClient> _logger;
-
-    public BalanceClient(IHttpClientFactory httpClientFactory, IOptions<BackendOptions> backendOptions, ILogger<BalanceClient> logger)
-    {
-        _httpClientFactory = httpClientFactory;
-        _baseUrl = backendOptions.Value.BaseUrl.TrimEnd('/');
-        _logger = logger;
-    }
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly string _baseUrl = backendOptions.Value.BaseUrl.TrimEnd('/');
+    private readonly ILogger<BalanceClient> _logger = logger;
 
     public async Task<Balance?> GetBalanceAsync(string accountId, CancellationToken cancellationToken = default)
     {

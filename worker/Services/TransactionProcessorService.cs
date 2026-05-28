@@ -6,29 +6,21 @@ using Transactions.Worker.Options;
 
 namespace Transactions.Worker.Services;
 
-public sealed class TransactionProcessorService : BackgroundService
+public sealed class TransactionProcessorService(
+    IOptions<KafkaOptions> kafkaOptions,
+    IOptions<WorkerOptions> workerOptions,
+    BalanceCalculatorFactory balanceCalculatorFactory,
+    ILogger<TransactionProcessorService> logger) : BackgroundService
 {
-    private readonly KafkaOptions _kafkaOptions;
-    private readonly WorkerOptions _workerOptions;
-    private readonly BalanceCalculatorFactory _balanceCalculatorFactory;
-    private readonly ILogger<TransactionProcessorService> _logger;
+    private readonly KafkaOptions _kafkaOptions = kafkaOptions.Value;
+    private readonly WorkerOptions _workerOptions = workerOptions.Value;
+    private readonly BalanceCalculatorFactory _balanceCalculatorFactory = balanceCalculatorFactory;
+    private readonly ILogger<TransactionProcessorService> _logger = logger;
 
     private readonly object _updateLock = new();
     private int _transactionsCounter;
     private DateTimeOffset? _batchStart;
     private IBalanceCalculator? _balanceCalculator;
-
-    public TransactionProcessorService(
-        IOptions<KafkaOptions> kafkaOptions,
-        IOptions<WorkerOptions> workerOptions,
-        BalanceCalculatorFactory balanceCalculatorFactory,
-        ILogger<TransactionProcessorService> logger)
-    {
-        _kafkaOptions = kafkaOptions.Value;
-        _workerOptions = workerOptions.Value;
-        _balanceCalculatorFactory = balanceCalculatorFactory;
-        _logger = logger;
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

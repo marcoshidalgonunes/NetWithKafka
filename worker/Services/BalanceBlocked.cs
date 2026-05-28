@@ -1,17 +1,10 @@
 namespace Transactions.Worker.Services;
 
-public sealed class BalanceBlocked : IBalanceCalculator
+public sealed class BalanceBlocked(string status, string accountId, ILogger<BalanceBlocked> logger) : IBalanceCalculator
 {
-    private readonly string _accountId;
-    private readonly string _status;
-    private readonly ILogger<BalanceBlocked> _logger;
-
-    public BalanceBlocked(string status, string accountId, ILogger<BalanceBlocked> logger)
-    {
-        _status = status;
-        _accountId = accountId;
-        _logger = logger;
-    }
+    private readonly string _accountId = accountId;
+    private readonly string _status = status;
+    private readonly ILogger<BalanceBlocked> _logger = logger;
 
     public string Execute(int transactionId, decimal transactionValue)
     {

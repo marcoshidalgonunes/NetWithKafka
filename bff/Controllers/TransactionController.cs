@@ -6,14 +6,9 @@ namespace Transactions.Bff.Controllers;
 
 [ApiController]
 [Route("api")]
-public sealed class TransactionController : ControllerBase
+public sealed class TransactionController(ITransactionService transactionService) : ControllerBase
 {
-    private readonly ITransactionService _transactionService;
-
-    public TransactionController(ITransactionService transactionService)
-    {
-        _transactionService = transactionService;
-    }
+    private readonly ITransactionService _transactionService = transactionService;
 
     [HttpPost("process")]
     public async Task<ActionResult<Transaction>> Process([FromBody] Transaction payload, CancellationToken cancellationToken)

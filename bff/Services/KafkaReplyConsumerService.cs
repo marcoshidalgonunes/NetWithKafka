@@ -7,21 +7,14 @@ using Transactions.Bff.Options;
 
 namespace Transactions.Bff.Services;
 
-public sealed class KafkaReplyConsumerService : BackgroundService
+public sealed class KafkaReplyConsumerService(
+    IOptions<KafkaOptions> options,
+    KafkaCorrelationStore store,
+    ILogger<KafkaReplyConsumerService> logger) : BackgroundService
 {
-    private readonly KafkaOptions _options;
-    private readonly KafkaCorrelationStore _store;
-    private readonly ILogger<KafkaReplyConsumerService> _logger;
-
-    public KafkaReplyConsumerService(
-        IOptions<KafkaOptions> options,
-        KafkaCorrelationStore store,
-        ILogger<KafkaReplyConsumerService> logger)
-    {
-        _options = options.Value;
-        _store = store;
-        _logger = logger;
-    }
+    private readonly KafkaOptions _options = options.Value;
+    private readonly KafkaCorrelationStore _store = store;
+    private readonly ILogger<KafkaReplyConsumerService> _logger = logger;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

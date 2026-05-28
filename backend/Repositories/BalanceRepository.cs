@@ -5,16 +5,10 @@ using Transactions.Backend.Models;
 
 namespace Transactions.Backend.Repositories;
 
-public sealed class BalanceRepository : IBalanceRepository
+public sealed class BalanceRepository(IConfiguration configuration, ILogger<BalanceRepository> logger) : IBalanceRepository
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<BalanceRepository> _logger;
-
-    public BalanceRepository(IConfiguration configuration, ILogger<BalanceRepository> logger)
-    {
-        _configuration = configuration;
-        _logger = logger;
-    }
+    private readonly IConfiguration _configuration = configuration;
+    private readonly ILogger<BalanceRepository> _logger = logger;
 
     public async Task<Balance?> GetBalanceAsync(string accountId, CancellationToken cancellationToken = default)
     {

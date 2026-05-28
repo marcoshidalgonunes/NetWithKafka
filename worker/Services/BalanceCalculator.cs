@@ -2,20 +2,12 @@ using Transactions.Worker.Clients;
 
 namespace Transactions.Worker.Services;
 
-public sealed class BalanceCalculator : IBalanceCalculator
+public sealed class BalanceCalculator(IBalanceClient balanceClient, string accountId, decimal balance, ILogger<BalanceCalculator> logger) : IBalanceCalculator
 {
-    private readonly IBalanceClient _balanceClient;
-    private readonly string _accountId;
-    private readonly ILogger<BalanceCalculator> _logger;
-    private decimal _balance;
-
-    public BalanceCalculator(IBalanceClient balanceClient, string accountId, decimal balance, ILogger<BalanceCalculator> logger)
-    {
-        _balanceClient = balanceClient;
-        _accountId = accountId;
-        _balance = balance;
-        _logger = logger;
-    }
+    private readonly IBalanceClient _balanceClient = balanceClient;
+    private readonly string _accountId = accountId;
+    private readonly ILogger<BalanceCalculator> _logger = logger;
+    private decimal _balance = balance;
 
     public string Execute(int transactionId, decimal transactionValue)
     {

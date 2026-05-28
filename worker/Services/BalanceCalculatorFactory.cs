@@ -2,24 +2,16 @@ using Transactions.Worker.Clients;
 
 namespace Transactions.Worker.Services;
 
-public sealed class BalanceCalculatorFactory
+public sealed class BalanceCalculatorFactory(
+    IBalanceClient balanceClient,
+    ILogger<BalanceCalculatorFactory> logger,
+    ILogger<BalanceBlocked> blockedLogger,
+    ILogger<BalanceCalculator> calculatorLogger)
 {
-    private readonly IBalanceClient _balanceClient;
-    private readonly ILogger<BalanceCalculatorFactory> _logger;
-    private readonly ILogger<BalanceBlocked> _blockedLogger;
-    private readonly ILogger<BalanceCalculator> _calculatorLogger;
-
-    public BalanceCalculatorFactory(
-        IBalanceClient balanceClient,
-        ILogger<BalanceCalculatorFactory> logger,
-        ILogger<BalanceBlocked> blockedLogger,
-        ILogger<BalanceCalculator> calculatorLogger)
-    {
-        _balanceClient = balanceClient;
-        _logger = logger;
-        _blockedLogger = blockedLogger;
-        _calculatorLogger = calculatorLogger;
-    }
+    private readonly IBalanceClient _balanceClient = balanceClient;
+    private readonly ILogger<BalanceCalculatorFactory> _logger = logger;
+    private readonly ILogger<BalanceBlocked> _blockedLogger = blockedLogger;
+    private readonly ILogger<BalanceCalculator> _calculatorLogger = calculatorLogger;
 
     public async Task<IBalanceCalculator> CreateAsync(string accountId, CancellationToken cancellationToken = default)
     {

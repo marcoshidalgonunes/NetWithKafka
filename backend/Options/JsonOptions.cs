@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Transactions.Backend.Infrastructure;
+namespace Transactions.Backend.Options;
 
-public static class BackendJson
+public static class JsonOptions
 {
     public static readonly JsonSerializerOptions Options = new()
     {
