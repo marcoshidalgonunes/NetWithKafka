@@ -18,51 +18,72 @@ public sealed class BalanceRepository : IBalanceRepository
 
     public async Task<Balance?> GetBalanceAsync(string accountId, CancellationToken cancellationToken = default)
     {
+        const string sql = "get_balance";
+
         await using var conn = new NpgsqlConnection(_configuration.GetConnectionString("BankAccounts"));
         await conn.OpenAsync(cancellationToken);
 
-        await using var cmd = new NpgsqlCommand("get_balance", conn)
+        await using var cmd = new NpgsqlCommand(sql, conn)
         {
             CommandType = CommandType.StoredProcedure
         };
+        
 
-        cmd.Parameters.AddWithValue("p_accountId", accountId);
+        var amountParam = new NpgsqlParameter
+        {
+            NpgsqlDbType = NpgsqlDbType.Numeric,
+            Direction = ParameterDirection.Output
+        };
+        var blockedParam = new NpgsqlParameter
+        {
+            NpgsqlDbType = NpgsqlDbType.Boolean,
+            Direction = ParameterDirection.Output
+        };
 
-        var amountParam = new NpgsqlParameter("p_amount", NpgsqlDbType.Numeric) { Direction = ParameterDirection.InputOutput, Value = 0m };
-        var blockedParam = new NpgsqlParameter("p_blocked", NpgsqlDbType.Boolean) { Direction = ParameterDirection.InputOutput, Value = false };
+        var parameters = cmd.Parameters;
 
-        cmd.Parameters.Add(amountParam);
-        cmd.Parameters.Add(blockedParam);
+        parameters.AddWithValue(accountId);
+        parameters.Add(amountParam);
+        parameters.Add(blockedParam);
 
         try
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+            if (amountParam.Value is DBNull || blockedParam.Value is DBNull)
+            {
+                return null;
+            }
+
             return new Balance
             {
                 AccountId = accountId,
-                Amount = (decimal)amountParam.Value!,
-                Blocked = (bool)blockedParam.Value!
+                Amount = Convert.ToDecimal(amountParam.Value, System.Globalization.CultureInfo.InvariantCulture),
+                Blocked = Convert.ToBoolean(blockedParam.Value, System.Globalization.CultureInfo.InvariantCulture)
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling get_balance for accountId {AccountId}", accountId);
+            _logger.LogError(ex, "Error calling get_balance for accountId={AccountId}", accountId);
             return null;
         }
     }
 
     public async Task<bool> UpdateBalanceAsync(string accountId, decimal newAmount, CancellationToken cancellationToken = default)
     {
+        const string sql = "update_balance";
+
         await using var conn = new NpgsqlConnection(_configuration.GetConnectionString("BankAccounts"));
         await conn.OpenAsync(cancellationToken);
 
-        await using var cmd = new NpgsqlCommand("update_balance", conn)
-        {
-            CommandType = CommandType.StoredProcedure
+        await using var cmd = new NpgsqlCommand(sql, conn) { 
+            CommandType = CommandType.StoredProcedure 
         };
 
-        cmd.Parameters.AddWithValue("p_accountId", accountId);
-        cmd.Parameters.AddWithValue("p_newAmount", newAmount);
+        var parameters = cmd.Parameters;
+
+        parameters.AddWithValue(accountId);
+        parameters.AddWithValue(newAmount);
 
         try
         {
@@ -71,7 +92,7 @@ public sealed class BalanceRepository : IBalanceRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling update_balance for accountId {AccountId}", accountId);
+            _logger.LogError(ex, "Error calling update_balance for accountId={AccountId}", accountId);
             return false;
         }
     }
