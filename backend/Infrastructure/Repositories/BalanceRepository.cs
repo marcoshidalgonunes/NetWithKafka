@@ -1,16 +1,17 @@
 using System.Data;
 using Npgsql;
 using NpgsqlTypes;
-using Transactions.Backend.Models;
+using Transactions.Backend.Domain.Contracts;
+using Transactions.Backend.Domain.Models;
 
-namespace Transactions.Backend.Repositories;
+namespace Transactions.Backend.Infrastructure.Repositories;
 
-public sealed class BalanceRepository(IConfiguration configuration, ILogger<BalanceRepository> logger) : IBalanceRepository
+public sealed class BalanceRepository(IConfiguration configuration, ILogger<BalanceRepository> logger) : IBalance
 {
     private readonly IConfiguration _configuration = configuration;
     private readonly ILogger<BalanceRepository> _logger = logger;
 
-    public async Task<Balance?> GetBalanceAsync(string accountId, CancellationToken cancellationToken = default)
+    public async Task<Balance?> ReadAsync(string accountId, CancellationToken cancellationToken = default)
     {
         const string sql = "get_balance";
 
@@ -63,7 +64,7 @@ public sealed class BalanceRepository(IConfiguration configuration, ILogger<Bala
         }
     }
 
-    public async Task<bool> UpdateBalanceAsync(string accountId, decimal newAmount, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(string accountId, decimal newAmount, CancellationToken cancellationToken = default)
     {
         const string sql = "update_balance";
 

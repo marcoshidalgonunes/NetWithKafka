@@ -1,6 +1,6 @@
 using Moq;
-using Transactions.Backend.Models;
-using Transactions.Backend.Repositories;
+using Transactions.Backend.Domain.Models;
+using Transactions.Backend.Infrastructure.Repositories;
 using Xunit;
 
 namespace Transactions.Backend.Tests;

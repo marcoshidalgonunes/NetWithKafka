@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
-using Transactions.Backend.Repositories;
-using Transactions.Backend.Services;
+using Transactions.Backend.Infrastructure.Repositories;
+using Transactions.Backend.App.Services;
+using Transactions.Backend.Domain.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,7 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddSingleton<IBalanceRepository, BalanceRepository>();
+builder.Services.AddSingleton<BalanceRepository>();
 builder.Services.AddSingleton<BalanceService>();
 
 builder.Services.AddControllers().AddJsonOptions(opts =>
