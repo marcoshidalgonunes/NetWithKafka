@@ -1,4 +1,4 @@
-using Transactions.Bff.Models;
+using Transactions.Bff.Domain.Models;
 using Transactions.Bff.Services;
 using Xunit;
 

@@ -1,7 +1,9 @@
 using System.Text.Json.Serialization;
 using Confluent.Kafka;
-using Transactions.Bff.Options;
-using Transactions.Bff.Services;
+using Transactions.Bff.App.Config;
+using Transactions.Bff.App.Services;
+using Transactions.Bff.Domain.Contracts;
+using Transactions.Bff.Infrastructure.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,14 +12,14 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection("Kafka"));
-builder.Services.AddSingleton<KafkaCorrelationStore>();
-builder.Services.AddSingleton<ITransactionService, TransactionService>();
-builder.Services.AddHostedService<KafkaReplyConsumerService>();
+builder.Services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
+builder.Services.AddSingleton<CorrelationStore>();
+builder.Services.AddSingleton<ITransaction, TransactionService>();
+builder.Services.AddHostedService<ReplyConsumerService>();
 
 builder.Services.AddSingleton<IProducer<string, string>>(sp =>
 {
-    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<KafkaOptions>>().Value;
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<KafkaConfig>>().Value;
     var config = new ProducerConfig
     {
         BootstrapServers = options.BootstrapServers,

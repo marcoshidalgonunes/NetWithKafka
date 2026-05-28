@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
-using Transactions.Bff.Models;
+using Transactions.Bff.Domain.Models;
 
-namespace Transactions.Bff.Services;
+namespace Transactions.Bff.Infrastructure.Kafka;
 
-public sealed class KafkaCorrelationStore
+public sealed class CorrelationStore
 {
     private readonly ConcurrentDictionary<string, TaskCompletionSource<Transaction>> _pending = new();
 

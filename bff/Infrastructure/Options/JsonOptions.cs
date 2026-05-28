@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Transactions.Bff.Options;
+namespace Transactions.Bff.Infrastructure.Options;
 
 public static class JsonOptions
 {

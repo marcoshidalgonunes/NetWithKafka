@@ -1,4 +1,4 @@
-namespace Transactions.Bff.Models;
+namespace Transactions.Bff.Domain.Models;
 
 public sealed class Tax
 {

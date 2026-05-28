@@ -2,20 +2,23 @@ using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
-using Transactions.Bff.Models;
-using Transactions.Bff.Options;
+using Transactions.Bff.App.Config;
+using Transactions.Bff.Domain.Contracts;
+using Transactions.Bff.Domain.Models;
+using Transactions.Bff.Infrastructure.Kafka;
+using Transactions.Bff.Infrastructure.Options;
 
-namespace Transactions.Bff.Services;
+namespace Transactions.Bff.App.Services;
 
 public sealed class TransactionService(
     IProducer<string, string> producer,
-    KafkaCorrelationStore store,
-    IOptions<KafkaOptions> options,
-    ILogger<TransactionService> logger) : ITransactionService
+    CorrelationStore store,
+    IOptions<KafkaConfig> options,
+    ILogger<TransactionService> logger) : ITransaction
 {
     private readonly IProducer<string, string> _producer = producer;
-    private readonly KafkaCorrelationStore _store = store;
-    private readonly KafkaOptions _options = options.Value;
+    private readonly CorrelationStore _store = store;
+    private readonly KafkaConfig _options = options.Value;
     private readonly ILogger<TransactionService> _logger = logger;
 
     public async Task<Transaction?> SendAndReceiveAsync(Transaction payload, CancellationToken cancellationToken = default)

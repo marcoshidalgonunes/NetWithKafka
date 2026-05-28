@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
-using Transactions.Bff.Models;
-using Transactions.Bff.Services;
+using Transactions.Bff.Domain.Contracts;
+using Transactions.Bff.Domain.Models;
 
-namespace Transactions.Bff.Controllers;
+namespace Transactions.Bff.App.Controllers;
 
 [ApiController]
 [Route("api")]
-public sealed class TransactionController(ITransactionService transactionService) : ControllerBase
+public sealed class TransactionController(ITransaction transactionService) : ControllerBase
 {
-    private readonly ITransactionService _transactionService = transactionService;
+    private readonly ITransaction _transactionService = transactionService;
 
     [HttpPost("process")]
     public async Task<ActionResult<Transaction>> Process([FromBody] Transaction payload, CancellationToken cancellationToken)

@@ -1,8 +1,8 @@
-using Transactions.Bff.Models;
+using Transactions.Bff.Domain.Models;
 
-namespace Transactions.Bff.Services;
+namespace Transactions.Bff.Domain.Contracts;
 
-public interface ITransactionService
+public interface ITransaction
 {
     Task<Transaction?> SendAndReceiveAsync(Transaction payload, CancellationToken cancellationToken = default);
 }

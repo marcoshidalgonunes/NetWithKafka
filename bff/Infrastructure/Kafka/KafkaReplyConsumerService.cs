@@ -2,19 +2,20 @@ using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
-using Transactions.Bff.Models;
-using Transactions.Bff.Options;
+using Transactions.Bff.App.Config;
+using Transactions.Bff.Domain.Models;
+using Transactions.Bff.Infrastructure.Options;
 
-namespace Transactions.Bff.Services;
+namespace Transactions.Bff.Infrastructure.Kafka;
 
-public sealed class KafkaReplyConsumerService(
-    IOptions<KafkaOptions> options,
-    KafkaCorrelationStore store,
-    ILogger<KafkaReplyConsumerService> logger) : BackgroundService
+public sealed class ReplyConsumerService(
+    IOptions<KafkaConfig> options,
+    CorrelationStore store,
+    ILogger<ReplyConsumerService> logger) : BackgroundService
 {
-    private readonly KafkaOptions _options = options.Value;
-    private readonly KafkaCorrelationStore _store = store;
-    private readonly ILogger<KafkaReplyConsumerService> _logger = logger;
+    private readonly KafkaConfig _options = options.Value;
+    private readonly CorrelationStore _store = store;
+    private readonly ILogger<ReplyConsumerService> _logger = logger;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
