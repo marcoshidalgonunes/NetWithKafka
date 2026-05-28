@@ -74,20 +74,6 @@ services:
       timeout: 5s
       retries: 5
 
-  worker:
-    container_name: worker 
-    image: ${DOCKER_REGISTRY-}transactions_net-worker
-    build:
-      context: ./worker/.
-      dockerfile: Dockerfile
-    depends_on:
-      backend:
-        condition: service_healthy           
-      postgres:
-        condition: service_healthy         
-    networks:
-      - lan-network
-
   backend:
     container_name: backend
     image: ${DOCKER_REGISTRY-}transactions_net-backend
@@ -106,6 +92,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  worker:
+    container_name: worker 
+    image: ${DOCKER_REGISTRY-}transactions_net-worker
+    build:
+      context: ./worker/.
+      dockerfile: Dockerfile
+    depends_on:
+      bff:
+        condition: service_healthy        
+      backend:
+        condition: service_healthy       
+    networks:
+      - lan-network
 
 volumes:
   postgresdata:
