@@ -1,12 +1,14 @@
-namespace Transactions.Worker.Services;
+using Transactions.Worker.Domain.Contracts;
 
-public sealed class BalanceBlocked(string status, string accountId, ILogger<BalanceBlocked> logger) : IBalanceCalculator
+namespace Transactions.Worker.App.Engine;
+
+public sealed class BalanceBlockedEngine(string status, string accountId, ILogger<BalanceBlockedEngine> logger) : IBalanceCalculator
 {
     private readonly string _accountId = accountId;
     private readonly string _status = status;
-    private readonly ILogger<BalanceBlocked> _logger = logger;
+    private readonly ILogger<BalanceBlockedEngine> _logger = logger;
 
-    public string Execute(int transactionId, decimal transactionValue)
+    public string Compute(int transactionId, decimal transactionValue)
     {
         _logger.LogWarning("Transaction Id '{TransactionId}' was not used for calculation", transactionId);
         return _status;

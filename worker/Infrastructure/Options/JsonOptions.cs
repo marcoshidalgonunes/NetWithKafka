@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Transactions.Worker.Options;
+namespace Transactions.Worker.Infrastructure.Options;
 
 public static class JsonOptions
 {

@@ -1,6 +1,6 @@
-namespace Transactions.Worker.Options;
+namespace Transactions.Worker.App.Config;
 
-public sealed class KafkaOptions
+public sealed class KafkaConfig
 {
     public string BootstrapServers { get; set; } = "localhost:9092";
     public string ProducerTopic { get; set; } = "transaction-processed";

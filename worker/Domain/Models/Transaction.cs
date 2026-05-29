@@ -1,3 +1,5 @@
+using Transactions.Worker.Domain.Models;
+
 namespace Transactions.Worker.Models;
 
 public sealed class Transaction

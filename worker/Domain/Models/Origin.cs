@@ -1,4 +1,4 @@
-namespace Transactions.Worker.Models;
+namespace Transactions.Worker.Domain.Models;
 
 public sealed class Origin
 {

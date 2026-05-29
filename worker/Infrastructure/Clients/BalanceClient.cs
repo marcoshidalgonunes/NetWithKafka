@@ -1,18 +1,19 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
-using Transactions.Worker.Models;
-using Transactions.Worker.Options;
+using Transactions.Worker.App.Config;
+using Transactions.Worker.Domain.Contracts;
+using Transactions.Worker.Domain.Models;
 
-namespace Transactions.Worker.Clients;
+namespace Transactions.Worker.Infrastructure.Clients;
 
-public sealed class BalanceClient(IHttpClientFactory httpClientFactory, IOptions<BackendOptions> backendOptions, ILogger<BalanceClient> logger) : IBalanceClient
+public sealed class BalanceClient(IHttpClientFactory httpClientFactory, IOptions<BackendConfig> backendOptions, ILogger<BalanceClient> logger) : IBalance
 {
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly string _baseUrl = backendOptions.Value.BaseUrl.TrimEnd('/');
     private readonly ILogger<BalanceClient> _logger = logger;
 
-    public async Task<Balance?> GetBalanceAsync(string accountId, CancellationToken cancellationToken = default)
+    public async Task<Balance?> Get(string accountId, CancellationToken cancellationToken = default)
     {
         using var client = _httpClientFactory.CreateClient();
         try
@@ -31,7 +32,7 @@ public sealed class BalanceClient(IHttpClientFactory httpClientFactory, IOptions
         }
     }
 
-    public async Task<bool> UpdateBalanceAsync(string accountId, decimal newAmount, CancellationToken cancellationToken = default)
+    public async Task<bool> Put(string accountId, decimal newAmount, CancellationToken cancellationToken = default)
     {
         using var client = _httpClientFactory.CreateClient();
         try

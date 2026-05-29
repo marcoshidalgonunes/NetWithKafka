@@ -1,15 +1,15 @@
-using Transactions.Worker.Clients;
+using Transactions.Worker.Domain.Contracts;
 
-namespace Transactions.Worker.Services;
+namespace Transactions.Worker.App.Engine;
 
-public sealed class BalanceCalculator(IBalanceClient balanceClient, string accountId, decimal balance, ILogger<BalanceCalculator> logger) : IBalanceCalculator
+public sealed class BalanceCalculatorEngine(IBalance balanceClient, string accountId, decimal balance, ILogger<BalanceCalculatorEngine> logger) : IBalanceCalculator
 {
-    private readonly IBalanceClient _balanceClient = balanceClient;
+    private readonly IBalance _balanceClient = balanceClient;
     private readonly string _accountId = accountId;
-    private readonly ILogger<BalanceCalculator> _logger = logger;
+    private readonly ILogger<BalanceCalculatorEngine> _logger = logger;
     private decimal _balance = balance;
 
-    public string Execute(int transactionId, decimal transactionValue)
+    public string Compute(int transactionId, decimal transactionValue)
     {
         var updatedBalance = _balance + transactionValue;
         if (updatedBalance < 0)
@@ -28,7 +28,7 @@ public sealed class BalanceCalculator(IBalanceClient balanceClient, string accou
         _logger.LogInformation("Updating balance for account Id '{AccountId}' to {Balance}", _accountId, _balance);
         try
         {
-            await _balanceClient.UpdateBalanceAsync(_accountId, _balance, cancellationToken);
+            await _balanceClient.Put(_accountId, _balance, cancellationToken);
         }
         catch (Exception ex)
         {

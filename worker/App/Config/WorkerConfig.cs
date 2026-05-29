@@ -1,6 +1,6 @@
-namespace Transactions.Worker.Options;
+namespace Transactions.Worker.App.Config;
 
-public sealed class WorkerOptions
+public sealed class WorkerConfig
 {
     public int BatchIntervalMs { get; set; } = 1000;
     public int BatchFlushThreshold { get; set; } = 10;

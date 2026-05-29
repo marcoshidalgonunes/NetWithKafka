@@ -1,21 +1,24 @@
 using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
+using Transactions.Worker.App.Config;
 using Transactions.Worker.Models;
-using Transactions.Worker.Options;
+using Transactions.Worker.Infrastructure.Options;
+using Transactions.Worker.App.Engine;
+using Transactions.Worker.Domain.Contracts;
 
-namespace Transactions.Worker.Services;
+namespace Transactions.Worker.App.Service;
 
-public sealed class TransactionProcessorService(
-    IOptions<KafkaOptions> kafkaOptions,
-    IOptions<WorkerOptions> workerOptions,
-    BalanceCalculatorFactory balanceCalculatorFactory,
-    ILogger<TransactionProcessorService> logger) : BackgroundService
+public sealed class TransactionService(
+    IOptions<KafkaConfig> kafkaOptions,
+    IOptions<WorkerConfig> workerOptions,
+    BalanceCalculatorEngineFactory balanceCalculatorFactory,
+    ILogger<TransactionService> logger) : BackgroundService
 {
-    private readonly KafkaOptions _kafkaOptions = kafkaOptions.Value;
-    private readonly WorkerOptions _workerOptions = workerOptions.Value;
-    private readonly BalanceCalculatorFactory _balanceCalculatorFactory = balanceCalculatorFactory;
-    private readonly ILogger<TransactionProcessorService> _logger = logger;
+    private readonly KafkaConfig _kafkaOptions = kafkaOptions.Value;
+    private readonly WorkerConfig _workerOptions = workerOptions.Value;
+    private readonly BalanceCalculatorEngineFactory _balanceCalculatorFactory = balanceCalculatorFactory;
+    private readonly ILogger<TransactionService> _logger = logger;
 
     private readonly object _updateLock = new();
     private int _transactionsCounter;
@@ -104,7 +107,7 @@ public sealed class TransactionProcessorService(
             _transactionsCounter++;
             var transactionId = transaction.TransactionId ?? 0;
             var amount = transaction.Amount ?? 0m;
-            status = _balanceCalculator?.Execute(transactionId, amount) ?? "ERROR";
+            status = _balanceCalculator?.Compute(transactionId, amount) ?? "ERROR";
             transaction.Status = status;
         }
 
