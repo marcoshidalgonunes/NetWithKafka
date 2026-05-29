@@ -1,14 +1,12 @@
 # NetWithKafka
 
-Example of a .NET 8 BFF communicating with Kafka-backed transaction processors and PostgreSQL.
+Example of a .NET 8 solution comprising an API (BFF), a backend processor, and a worker that orchestrates transaction processing through Kafka and PostgreSQL.
 
 ## Services
 
 - `bff`: ASP.NET Core API exposing `POST /api/process`
-- `worker`: .NET worker service that consumes transactions, applies batch balance updates, and replies over Kafka
-- `backend`: alternate .NET worker service that calls the `process_transaction` PostgreSQL function directly
-
-`worker` and `backend` consume the same Kafka topic/group and should not be used as primary processors at the same time.
+- `worker`: .NET worker service that orchestrates transaction processing — consumes transactions from Kafka and delegates balance processing to `backend`
+- `backend`: .NET service responsible for balance processing; reads balances via `get_balance` and applies updates via `update_balance` directly against PostgreSQL; required by `worker`
 
 ## Solution layout
 
@@ -41,33 +39,42 @@ dotnet run --project backend/Transactions.Backend.csproj
 
 ## Docker Compose
 
-Default runtime path uses `bff` + `worker`:
+All three services (`bff`, `backend`, and `worker`) are required and run together:
 
 ```bash
 docker compose up --build
 ```
 
-To run the alternate `backend` processor instead, stop `worker` first and enable the `backend` profile:
-
-```bash
-docker compose stop worker
-docker compose --profile backend up --build backend
-```
+`worker` depends on both `bff` and `backend` being healthy before it starts.
 
 The BFF health endpoint is available at:
 
 ```text
-http://localhost:8080/actuator/health
+http://localhost:8081/actuator/health
 ```
 
 ## PostgreSQL initialization
 
-Schema and procedure scripts are mounted into `/docker-entrypoint-initdb.d` for fresh PostgreSQL volumes.
-
-If you already have an existing `postgresdata` volume and want the initialization scripts to run again, remove it first:
+The `postgresdata` volume is declared as external and must be created before starting the stack:
 
 ```bash
+docker volume create postgresdata
+```
+
+The SQL scripts are **not** mounted automatically. After the `postgres` container is running, apply them in order:
+
+```bash
+docker exec -i postgres psql -U postgres < postgres/create_balance_table.sql
+docker exec -i postgres psql -U postgres < postgres/create_transaction_table.sql
+docker exec -i postgres psql -U postgres < postgres/process_transaction_stored_procedure.sql
+```
+
+To reset the database, remove and recreate the volume, then re-run the scripts above:
+
+```bash
+docker compose down
 docker volume rm postgresdata
+docker volume create postgresdata
 ```
 
 ## Notes
