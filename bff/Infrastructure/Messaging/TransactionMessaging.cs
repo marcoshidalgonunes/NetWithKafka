@@ -10,16 +10,16 @@ using Transactions.Bff.Infrastructure.Options;
 
 namespace Transactions.Bff.Infrastructure.Messaging;
 
-public sealed class TransactionMessage(
+public sealed class TransactionMessaging(
     IProducer<string, string> producer,
     CorrelationStore store,
     IOptions<KafkaConfig> options,
-    ILogger<TransactionMessage> logger) : ITransaction
+    ILogger<TransactionMessaging> logger) : ITransaction
 {
     private readonly IProducer<string, string> _producer = producer;
     private readonly CorrelationStore _store = store;
     private readonly KafkaConfig _options = options.Value;
-    private readonly ILogger<TransactionMessage> _logger = logger;
+    private readonly ILogger<TransactionMessaging> _logger = logger;
 
     public async Task<Transaction?> SendAndReceiveAsync(Transaction payload, CancellationToken cancellationToken = default)
     {

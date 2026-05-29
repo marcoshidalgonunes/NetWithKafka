@@ -14,7 +14,7 @@ builder.Configuration
 
 builder.Services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
 builder.Services.AddSingleton<CorrelationStore>();
-builder.Services.AddSingleton<ITransaction, TransactionMessage>();
+builder.Services.AddSingleton<ITransaction, TransactionMessaging>();
 builder.Services.AddHostedService<ReplyConsumerService>();
 
 builder.Services.AddSingleton<IProducer<string, string>>(sp =>
