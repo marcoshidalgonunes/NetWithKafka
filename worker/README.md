@@ -4,11 +4,14 @@
 
 > _Fill in specific business rules and workflows for your domain here._
 
-This is a **.NET 8 Worker Service** responsible for bridging **Kafka messaging** and the **Transactions Backend API**. It runs as a background service that consumes transaction messages from a Kafka topic, forwards them to the backend REST API via HTTP, and publishes the responses back to a Kafka reply topic.
+This is a **.NET 8 Worker Service** responsible for bridging **Kafka messaging** and the **Balances Backend API**. It runs as a background service that consumes transaction messages from a Kafka topic, computes balance, forwards updated balance to the backend REST API via HTTP, and publishes the responses back to a Kafka reply topic.
 
 **Key responsibilities:**
 - Consume transaction request messages from a Kafka topic
-- Forward requests to the Transactions Backend API via HTTP
+- Get balance from Backend API via HTTP
+- Computes balances value adding transaction amount when balance is not blocked. If balance value after computation is greater than zero, transaction status is updated to signals the transaction was accepted otherwise transaction is rejected
+- Set transaction status as blocked if balance is blocked
+- Put updated balance value to the Balance Backend API via HTTP
 - Publish API responses back to the Kafka reply topic
 
 ---
