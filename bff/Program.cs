@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 using Confluent.Kafka;
 using Transactions.Bff.App.Config;
-using Transactions.Bff.App.Services;
 using Transactions.Bff.Domain.Contracts;
 using Transactions.Bff.Infrastructure.Kafka;
+using Transactions.Bff.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +14,7 @@ builder.Configuration
 
 builder.Services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
 builder.Services.AddSingleton<CorrelationStore>();
-builder.Services.AddSingleton<ITransaction, TransactionService>();
+builder.Services.AddSingleton<ITransaction, TransactionMessage>();
 builder.Services.AddHostedService<ReplyConsumerService>();
 
 builder.Services.AddSingleton<IProducer<string, string>>(sp =>

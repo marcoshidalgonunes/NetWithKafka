@@ -8,18 +8,18 @@ using Transactions.Bff.Domain.Models;
 using Transactions.Bff.Infrastructure.Kafka;
 using Transactions.Bff.Infrastructure.Options;
 
-namespace Transactions.Bff.App.Services;
+namespace Transactions.Bff.Infrastructure.Messaging;
 
-public sealed class TransactionService(
+public sealed class TransactionMessage(
     IProducer<string, string> producer,
     CorrelationStore store,
     IOptions<KafkaConfig> options,
-    ILogger<TransactionService> logger) : ITransaction
+    ILogger<TransactionMessage> logger) : ITransaction
 {
     private readonly IProducer<string, string> _producer = producer;
     private readonly CorrelationStore _store = store;
     private readonly KafkaConfig _options = options.Value;
-    private readonly ILogger<TransactionService> _logger = logger;
+    private readonly ILogger<TransactionMessage> _logger = logger;
 
     public async Task<Transaction?> SendAndReceiveAsync(Transaction payload, CancellationToken cancellationToken = default)
     {
