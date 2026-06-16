@@ -1,10 +1,6 @@
 using System.Data;
-using Npgsql;
-using NpgsqlTypes;
-using Transactions.Backend.Domain.Contracts;
-using Transactions.Backend.Domain.Models;
 
-namespace Transactions.Backend.Infrastructure.Repositories;
+namespace Balances.Backend.Infrastructure.Repositories;
 
 public sealed class BalanceRepository(IConfiguration configuration, ILogger<BalanceRepository> logger) : IBalance
 {

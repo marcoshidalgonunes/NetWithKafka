@@ -6,15 +6,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bff", "bff", "{019C950E-A97
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transactions.Bff", "bff\Transactions.Bff.csproj", "{5ED8B75A-DBA5-7BDE-9EE6-33F82E154932}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transactions.Backend", "backend\Transactions.Backend.csproj", "{9F8EAC4D-D62A-4B81-A43C-579A7543B495}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transactions.Backend", "transaction-backend\Transactions.Backend.csproj", "{9F8EAC4D-D62A-4B81-A43C-579A7543B495}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transactions.Worker", "worker\Transactions.Worker.csproj", "{345481D3-02D8-4A5A-B5C8-71D0018FABF8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{17221B89-8FFF-4E47-A3DC-818D01D01889}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "transaction-backend", "transaction-backend", "{17221B89-8FFF-4E47-A3DC-818D01D01889}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1CD0C88B-9E0E-4396-AEFA-3027644BF8E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transactions.Backend.Tests", "backend\tests\Transactions.Backend.Tests\Transactions.Backend.Tests.csproj", "{0FB49E0F-A301-4C0B-BE34-3B3F30B0E3A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transactions.Backend.Tests", "transaction-backend\tests\Transactions.Backend.Tests\Transactions.Backend.Tests.csproj", "{0FB49E0F-A301-4C0B-BE34-3B3F30B0E3A3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1CC0B1D2-EA90-4DB3-B14F-20604508E30C}"
 EndProject

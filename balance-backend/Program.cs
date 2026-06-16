@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using Transactions.Backend.Infrastructure.Repositories;
-using Transactions.Backend.App.Services;
-using Transactions.Backend.Domain.Contracts;
+using Balances.Backend.Infrastructure.Repositories;
+using Balances.Backend.App.Services;
+using Balances.Backend.Domain.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 

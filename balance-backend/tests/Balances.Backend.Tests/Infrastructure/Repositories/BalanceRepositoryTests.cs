@@ -1,9 +1,4 @@
-using Moq;
-using Transactions.Backend.Domain.Models;
-using Transactions.Backend.Infrastructure.Repositories;
-using Xunit;
-
-namespace Transactions.Backend.Tests;
+namespace Balances.Backend.Infrastructure.Tests.Repositories;
 
 public sealed class BalanceRepositoryTests
 {

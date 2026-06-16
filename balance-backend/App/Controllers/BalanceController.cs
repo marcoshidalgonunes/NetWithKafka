@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Transactions.Backend.Domain.Models;
-using Transactions.Backend.App.Services;
+using Balances.Backend.Domain.Models;
+using Balances.Backend.App.Services;
 
-namespace Transactions.Backend.App.Controllers;
+namespace Balances.Backend.App.Controllers;
 
 [ApiController]
 [Route("api/balance")]

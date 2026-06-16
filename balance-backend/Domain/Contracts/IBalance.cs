@@ -1,6 +1,6 @@
-using Transactions.Backend.Domain.Models;
+using Balances.Backend.Domain.Models;
 
-namespace Transactions.Backend.Domain.Contracts;
+namespace Balances.Backend.Domain.Contracts;
 
 public interface IBalance
 {

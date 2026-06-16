@@ -1,4 +1,4 @@
-namespace Transactions.Backend.Domain.Models;
+namespace Balances.Backend.Domain.Models;
 
 public sealed class Balance
 {

@@ -17,6 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../Transactions.Backend.csproj" />
+    <ProjectReference Include="../../Balances.Backend.csproj" />
   </ItemGroup>
 </Project>
