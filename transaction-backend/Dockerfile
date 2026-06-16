@@ -1,11 +1,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY Balances.Backend.csproj ./
-RUN dotnet restore Balances.Backend.csproj
+COPY Transactions.Backend.csproj ./
+RUN dotnet restore Transactions.Backend.csproj
 
 COPY . ./
-RUN dotnet publish Balances.Backend.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish Transactions.Backend.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
@@ -16,8 +16,8 @@ RUN apt-get update \
 
 COPY --from=build /app/publish ./
 
-EXPOSE 8083
-ENV ASPNETCORE_URLS=http://+:8083
+EXPOSE 8084
+ENV ASPNETCORE_URLS=http://+:8084
 ENV ASPNETCORE_ENVIRONMENT=Docker
 
-ENTRYPOINT ["dotnet", "Balances.Backend.dll"]
+ENTRYPOINT ["dotnet", "Transactions.Backend.dll"]
