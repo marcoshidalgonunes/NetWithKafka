@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using Transactions.Backend.Infrastructure.Repositories;
 using Transactions.Backend.App.Services;
+using Transactions.Backend.App.Config;
+using Transactions.Backend.App.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,16 +11,20 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddSingleton<TransactionRepository>();
-builder.Services.AddSingleton<TransactionService>();
+var services = builder.Services;
+services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
 
-builder.Services.AddControllers().AddJsonOptions(opts =>
+services.AddSingleton<TransactionRepository>();
+services.AddSingleton<TransactionService>();
+services.AddHostedService<TransactionConsumer>();
+
+services.AddControllers().AddJsonOptions(opts =>
 {
     opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-builder.Services.AddHealthChecks();
+services.AddHealthChecks();
 
 var app = builder.Build();
 
