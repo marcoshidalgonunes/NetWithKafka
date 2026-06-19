@@ -2,7 +2,7 @@ using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
 using Transactions.Worker.App.Config;
-using Transactions.Worker.Models;
+using Transactions.Worker.Domain.Models;
 using Transactions.Worker.Infrastructure.Options;
 using Transactions.Worker.App.Engine;
 using Transactions.Worker.Domain.Contracts;

@@ -1,6 +1,6 @@
 using Moq;
 using Microsoft.Extensions.Logging;
-using Transactions.Worker.Models;
+using Transactions.Worker.Domain.Models;
 using Xunit;
 using Transactions.Worker.Domain.Contracts;
 using Transactions.Worker.App.Engine;

@@ -1,4 +1,4 @@
-using Transactions.Worker.Models;
+using Transactions.Worker.Domain.Models;
 using Xunit;
 
 namespace Transactions.Worker.Tests;

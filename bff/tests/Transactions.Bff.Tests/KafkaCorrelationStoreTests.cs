@@ -1,5 +1,5 @@
 using Transactions.Bff.Domain.Models;
-using Transactions.Bff.Services;
+using Transactions.Bff.Infrastructure.Kafka;
 using Xunit;
 
 namespace Transactions.Bff.Tests;
@@ -9,7 +9,7 @@ public sealed class KafkaCorrelationStoreTests
     [Fact]
     public async Task TryComplete_CompletesPendingTask()
     {
-        var store = new KafkaCorrelationStore();
+        var store = new CorrelationStore();
         var tcs = store.CreatePending("corr-1");
         var transaction = new Transaction { Status = "DONE" };
 
