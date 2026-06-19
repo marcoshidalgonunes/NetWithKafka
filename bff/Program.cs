@@ -12,12 +12,14 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
-builder.Services.AddSingleton<CorrelationStore>();
-builder.Services.AddSingleton<ITransaction, TransactionMessaging>();
-builder.Services.AddHostedService<ReplyConsumerService>();
+var services = builder.Services;
 
-builder.Services.AddSingleton<IProducer<string, string>>(sp =>
+services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
+services.AddSingleton<CorrelationStore>();
+services.AddSingleton<ITransaction, TransactionMessaging>();
+services.AddHostedService<ReplyConsumerService>();
+
+services.AddSingleton<IProducer<string, string>>(sp =>
 {
     var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<KafkaConfig>>().Value;
     var config = new ProducerConfig
@@ -28,13 +30,13 @@ builder.Services.AddSingleton<IProducer<string, string>>(sp =>
     return new ProducerBuilder<string, string>(config).Build();
 });
 
-builder.Services.AddControllers().AddJsonOptions(opts =>
+services.AddControllers().AddJsonOptions(opts =>
 {
     opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-builder.Services.AddHealthChecks();
+services.AddHealthChecks();
 
 var app = builder.Build();
 

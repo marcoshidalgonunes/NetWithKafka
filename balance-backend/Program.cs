@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using Balances.Backend.Infrastructure.Repositories;
 using Balances.Backend.App.Services;
-using Balances.Backend.Domain.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,16 +9,18 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddSingleton<BalanceRepository>();
-builder.Services.AddSingleton<BalanceService>();
+var services = builder.Services;
 
-builder.Services.AddControllers().AddJsonOptions(opts =>
+services.AddSingleton<BalanceRepository>();
+services.AddSingleton<BalanceService>();
+
+services.AddControllers().AddJsonOptions(opts =>
 {
     opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-builder.Services.AddHealthChecks();
+services.AddHealthChecks();
 
 var app = builder.Build();
 
