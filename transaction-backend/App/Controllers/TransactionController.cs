@@ -8,20 +8,25 @@ namespace Transactions.Backend.App.Controllers;
 [Route("api/transactions")]
 public sealed class TransactionController(TransactionService transactionService) : ControllerBase
 {
-    [HttpGet("{accountId}/{transactionId}")]
-    public async Task<ActionResult<Transaction>> GetTransactionAsync(string accountId, int transactionId, CancellationToken cancellationToken)
+    [HttpGet("{accountId}/{date}")]
+    public async Task<ActionResult<Transaction>> GetTransactionsByDateAsync(string accountId, string date, CancellationToken cancellationToken)
     {
-        var transaction = await transactionService.ReadAsync(accountId, transactionId, cancellationToken);
+        if (!DateOnly.TryParse(date, out var dateOnly))
+        {
+            return BadRequest("Invalid date format.");
+        }
+
+        var transaction = await transactionService.ReadByDateAsync(accountId, dateOnly, cancellationToken);
         return transaction is null ? NotFound() : Ok(transaction);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateTransactionAsync([FromBody] Transaction transaction, CancellationToken cancellationToken)
     {
-        if (transaction?.Account == null)
+        if (transaction?.Entry.Account == null)
             return BadRequest();
         
-        var updated = await transactionService.CreateAsync(transaction.Account.ToAccountId(), (int)transaction.TransactionId!, (decimal)transaction.Amount!, transaction.Status!, cancellationToken);
+        var updated = await transactionService.CreateAsync(transaction, cancellationToken);
         return updated ? NoContent() : NotFound();
     }
 }

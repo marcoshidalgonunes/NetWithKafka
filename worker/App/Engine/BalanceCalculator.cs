@@ -9,7 +9,7 @@ public sealed class BalanceCalculatorEngine(IBalance balanceClient, string accou
     private readonly ILogger<BalanceCalculatorEngine> _logger = logger;
     private decimal _balance = balance;
 
-    public string Compute(int transactionId, decimal transactionValue)
+    public string Compute(Guid transactionId, decimal transactionValue)
     {
         var updatedBalance = _balance + transactionValue;
         if (updatedBalance < 0)

@@ -41,15 +41,10 @@ public sealed class TransactionConsumer(
                 {
                     _logger.LogInformation("Received message: {Message}", consumeResult.Message.Value);
 
-                    var transactionMessage = JsonSerializer.Deserialize<Transaction>(consumeResult.Message.Value, JsonOptions.Serialization);
-                    if (transactionMessage != null && transactionMessage.Account != null)
+                    var transaction = JsonSerializer.Deserialize<Transaction>(consumeResult.Message.Value, JsonOptions.Serialization);
+                    if (transaction != null && transaction.Entry.Account != null)
                     {
-                        await _transactionService.CreateAsync(
-                            transactionMessage.Account.ToAccountId(), 
-                            (int)transactionMessage.TransactionId!, 
-                            (decimal)transactionMessage.Amount!,
-                            transactionMessage.Status!, 
-                            cancellationToken);
+                        await _transactionService.CreateAsync(transaction, cancellationToken);
                     }
                 }                
             }

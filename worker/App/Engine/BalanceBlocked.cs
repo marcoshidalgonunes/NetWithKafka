@@ -8,7 +8,7 @@ public sealed class BalanceBlockedEngine(string status, string accountId, ILogge
     private readonly string _status = status;
     private readonly ILogger<BalanceBlockedEngine> _logger = logger;
 
-    public string Compute(int transactionId, decimal transactionValue)
+    public string Compute(Guid transactionId, decimal transactionValue)
     {
         _logger.LogWarning("Transaction Id '{TransactionId}' was not used for calculation", transactionId);
         return _status;

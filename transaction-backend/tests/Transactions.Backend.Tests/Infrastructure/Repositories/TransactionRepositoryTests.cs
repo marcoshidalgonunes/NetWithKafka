@@ -15,11 +15,11 @@ public sealed class TransactionRepositoryTests
         // Arrange
         var expected = new Transaction { TransactionId = 42, Amount = 250.50m, Status = "completed" };
         _repository
-            .Setup(r => r.ReadAsync("ACC-001", 42, It.IsAny<CancellationToken>()))
+            .Setup(r => r.ReadByDateAsync("ACC-001", 42, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
 
         // Act
-        var result = await _repository.Object.ReadAsync("ACC-001", 42, CancellationToken.None);
+        var result = await _repository.Object.ReadByDateAsync("ACC-001", 42, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -33,11 +33,11 @@ public sealed class TransactionRepositoryTests
     {
         // Arrange
         _repository
-            .Setup(r => r.ReadAsync("ACC-001", 999, It.IsAny<CancellationToken>()))
+            .Setup(r => r.ReadByDateAsync("ACC-001", 999, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Transaction?)null);
 
         // Act
-        var result = await _repository.Object.ReadAsync("ACC-001", 999, CancellationToken.None);
+        var result = await _repository.Object.ReadByDateAsync("ACC-001", 999, CancellationToken.None);
 
         // Assert
         Assert.Null(result);

@@ -6,16 +6,16 @@ namespace Transactions.Bff.App.Controllers;
 
 [ApiController]
 [Route("api")]
-public sealed class TransactionController(ITransaction transactionService) : ControllerBase
+public sealed class TransactionController(ITransaction transactionMessaging) : ControllerBase
 {
-    private readonly ITransaction _transactionService = transactionService;
+    private readonly ITransaction _transactionMessaging = transactionMessaging;
 
     [HttpPost("process")]
-    public async Task<ActionResult<Transaction>> Process([FromBody] Transaction payload, CancellationToken cancellationToken)
+    public async Task<ActionResult<Transaction>> Process([FromBody] Entry payload, CancellationToken cancellationToken)
     {
         try
         {
-            var result = await _transactionService.SendAndReceiveAsync(payload, cancellationToken);
+            var result = await _transactionMessaging.SendAndReceiveAsync(payload, cancellationToken);
             if (result is null)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);

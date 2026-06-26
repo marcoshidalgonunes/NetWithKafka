@@ -21,16 +21,23 @@ public sealed class TransactionMessaging(
     private readonly KafkaConfig _options = options.Value;
     private readonly ILogger<TransactionMessaging> _logger = logger;
 
-    public async Task<Transaction?> SendAndReceiveAsync(Transaction payload, CancellationToken cancellationToken = default)
+    public async Task<Transaction?> SendAndReceiveAsync(Entry payload, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Producing Transaction to Kafka: {@Payload}", payload);
+        Transaction transaction = new()
+        {
+            TransactionId = Guid.NewGuid(),
+            Entry = payload,
+            Status = "PROCESS"
+        };
+
+        _logger.LogInformation("Producing Transaction to Kafka: {@Payload}", transaction);
 
         var correlationId = Guid.NewGuid().ToString();
         var tcs = _store.CreatePending(correlationId);
         var kafkaMessage = new Message<string, string>
         {
             Key = correlationId,
-            Value = JsonSerializer.Serialize(payload, JsonOptions.Serialization),
+            Value = JsonSerializer.Serialize(transaction, JsonOptions.Serialization),
             Headers = new Headers
             {
                 { "correlationId", Encoding.UTF8.GetBytes(correlationId) },

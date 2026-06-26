@@ -105,8 +105,8 @@ public sealed class TransactionService(
         lock (_updateLock)
         {
             _transactionsCounter++;
-            var transactionId = transaction.TransactionId ?? 0;
-            var amount = transaction.Amount ?? 0m;
+            var transactionId = transaction.TransactionId;
+            var amount = transaction.Entry.Amount;
             status = _balanceCalculator?.Compute(transactionId, amount) ?? "ERROR";
             transaction.Status = status;
         }
@@ -116,7 +116,7 @@ public sealed class TransactionService(
         {
             Key = key,
             Value = response,
-            Headers = new Headers()
+            Headers = []
         };
 
         var correlationIdHeader = consumedRecord.Message.Headers?.FirstOrDefault(h => h.Key == "correlationId");
@@ -143,11 +143,6 @@ public sealed class TransactionService(
 
     private async Task PrepareAsync(Transaction transaction, CancellationToken cancellationToken)
     {
-        if (transaction.Account is null)
-        {
-            return;
-        }
-
         var shouldPrepare = false;
         lock (_updateLock)
         {
@@ -162,7 +157,7 @@ public sealed class TransactionService(
             return;
         }
 
-        var accountId = transaction.Account.ToAccountId();
+        var accountId = transaction.Entry.Account.ToAccountId();
         var calculator = await _balanceCalculatorFactory.CreateAsync(accountId, cancellationToken);
 
         lock (_updateLock)
