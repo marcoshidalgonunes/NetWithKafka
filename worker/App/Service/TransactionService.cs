@@ -38,6 +38,7 @@ public sealed class TransactionService(
         var producerConfig = new ProducerConfig
         {
             BootstrapServers = _kafkaOptions.BootstrapServers,
+            AllowAutoCreateTopics = true,
             Acks = Acks.All,
             MessageTimeoutMs = _kafkaOptions.ProduceTimeoutMs
         };

@@ -63,7 +63,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       kafka:
-        condition: service_healthy
+        condition: service_healthy        
     networks:
       - lan-network
     ports:
@@ -101,7 +101,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       kafka:
-        condition: service_healthy    
+        condition: service_healthy     
       postgres:
         condition: service_healthy
     networks:
