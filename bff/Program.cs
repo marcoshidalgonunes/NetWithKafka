@@ -8,63 +8,57 @@ using Transactions.Bff.Domain.Contracts;
 using Transactions.Bff.Infrastructure.Kafka;
 using Transactions.Bff.Infrastructure.Messaging;
 
-internal class Program
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+var services = builder.Services;
+
+services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
+services.AddSingleton<CorrelationStore>();
+services.AddSingleton<TransactionConsumerBuilder>();
+services.AddSingleton<ITransaction, TransactionService>();
+services.AddHostedService<TransactionConsumer>();
+
+services.AddSingleton(sp =>
 {
-    private static void Main(string[] args)
+    var options = sp.GetRequiredService<IOptions<KafkaConfig>>().Value;
+    var config = new ProducerConfig
     {
-        var builder = WebApplication.CreateBuilder(args);
+        BootstrapServers = options.BootstrapServers,
+        Acks = Acks.All
+    };
+    return new ProducerBuilder<string, string>(config).Build();
+});
 
-        builder.Configuration
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-            .AddEnvironmentVariables();
+services.AddControllers().AddJsonOptions(opts =>
+{
+    opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
-        var services = builder.Services;
+services.AddHealthChecks();
 
-        services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
-        services.AddSingleton<CorrelationStore>();
-        services.AddSingleton<TransactionConsumerBuilder>();
-        services.AddSingleton<ITransaction, TransactionService>();
-        services.AddHostedService<TransactionConsumer>();
+var app = builder.Build();
 
-        services.AddSingleton(sp =>
-        {
-            var options = sp.GetRequiredService<IOptions<KafkaConfig>>().Value;
-            var config = new ProducerConfig
-            {
-                BootstrapServers = options.BootstrapServers,
-                Acks = Acks.All
-            };
-            return new ProducerBuilder<string, string>(config).Build();
-        });
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "text/plain";
 
-        services.AddControllers().AddJsonOptions(opts =>
-        {
-            opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-            opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        });
+        var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+        var message = exceptionFeature?.Error?.Message ?? "Unknown error";
+        await context.Response.WriteAsync($"Unexpected error: {message}");
+    });
+});
 
-        services.AddHealthChecks();
+app.MapControllers();
+app.MapHealthChecks("/health");
+app.MapGet("/actuator/health", () => Results.Ok(new { status = "UP" }));
 
-        var app = builder.Build();
-
-        app.UseExceptionHandler(errorApp =>
-        {
-            errorApp.Run(async context =>
-            {
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                context.Response.ContentType = "text/plain";
-
-                var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
-                var message = exceptionFeature?.Error?.Message ?? "Unknown error";
-                await context.Response.WriteAsync($"Unexpected error: {message}");
-            });
-        });
-
-        app.MapControllers();
-        app.MapHealthChecks("/health");
-        app.MapGet("/actuator/health", () => Results.Ok(new { status = "UP" }));
-
-        app.Run();
-    }
-}
+app.Run();

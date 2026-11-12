@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
-using Confluent.Kafka.Admin;
 using Microsoft.Extensions.Options;
 using Transactions.Bff.App.Config;
 using Transactions.Bff.Domain.Models;
