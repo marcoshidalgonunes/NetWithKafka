@@ -19,14 +19,31 @@ public sealed class TransactionConsumerBuilder(
             BootstrapServers = _config.BootstrapServers
         }).Build();
 
-        var topics = new[]
+        var desiredTopics = new[]
         {
             new TopicSpecification { Name = _config.ConsumerTopic, NumPartitions = 3, ReplicationFactor = 1 },
         };
 
+        var metadata = admin.GetMetadata(TimeSpan.FromSeconds(10));
+
+        var existingTopics = metadata.Topics
+            .Where(t => t.Error.Code == ErrorCode.NoError)
+            .Select(t => t.Topic)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var missingTopics = desiredTopics
+            .Where(t => !existingTopics.Contains(t.Name))
+            .ToList();
+
+        if (missingTopics.Count == 0)
+        {
+            _logger.LogInformation("Kafka topics already exist.");
+            return;
+        }
+
         try
         {
-            await admin.CreateTopicsAsync(topics);
+            await admin.CreateTopicsAsync(missingTopics);
             _logger.LogInformation("Kafka topics verified/created successfully.");
         }
         catch (CreateTopicsException ex) when (ex.Results.All(r => r.Error.Code == ErrorCode.TopicAlreadyExists))
