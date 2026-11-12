@@ -43,7 +43,7 @@ public sealed class TransactionConsumer(
                 var handlers = TransactionReceived;
                 if (handlers is null) continue;
 
-                foreach (Func<Transaction, CancellationToken, Task> handler in handlers.GetInvocationList())
+                foreach (Func<Transaction, CancellationToken, Task> handler in handlers.GetInvocationList().Cast<Func<Transaction, CancellationToken, Task>>())
                 {
                     await handler(transaction, cancellationToken);
                 }
