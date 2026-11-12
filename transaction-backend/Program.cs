@@ -2,7 +2,8 @@ using System.Text.Json.Serialization;
 using Transactions.Backend.Infrastructure.Repositories;
 using Transactions.Backend.App.Services;
 using Transactions.Backend.App.Config;
-using Transactions.Backend.App.Consumers;
+using Transactions.Backend.Infrastructure.Messaging;
+using Transactions.Backend.Infrastructure.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
 
 services.AddSingleton<TransactionRepository>();
 services.AddSingleton<TransactionService>();
+services.AddSingleton<TransactionConsumerBuilder>();
 services.AddHostedService<TransactionConsumer>();
 
 services.AddControllers().AddJsonOptions(opts =>
