@@ -1,20 +1,24 @@
 using System.Text.Json;
-using Confluent.Kafka;
 using Microsoft.Extensions.Options;
 using Transactions.Worker.App.Config;
 using Transactions.Worker.Domain.Models;
 using Transactions.Worker.Infrastructure.Options;
 using Transactions.Worker.App.Engine;
 using Transactions.Worker.Domain.Contracts;
+using Transactions.Worker.Infrastructure.Kafka;
 
 namespace Transactions.Worker.App.Service;
 
 public sealed class TransactionService(
+    TransactionConsumer transactionConsumer,
+    TransactionProducer transactionProducer,
     IOptions<KafkaConfig> kafkaOptions,
     IOptions<WorkerConfig> workerOptions,
     BalanceCalculatorEngineFactory balanceCalculatorFactory,
     ILogger<TransactionService> logger) : BackgroundService
 {
+    private readonly TransactionConsumer _transactionConsumer = transactionConsumer;
+    private readonly TransactionProducer _transactionProducer = transactionProducer;
     private readonly KafkaConfig _kafkaOptions = kafkaOptions.Value;
     private readonly WorkerConfig _workerOptions = workerOptions.Value;
     private readonly BalanceCalculatorEngineFactory _balanceCalculatorFactory = balanceCalculatorFactory;
@@ -27,26 +31,7 @@ public sealed class TransactionService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var consumerConfig = new ConsumerConfig
-        {
-            BootstrapServers = _kafkaOptions.BootstrapServers,
-            GroupId = _kafkaOptions.ConsumerGroupId,
-            AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnableAutoCommit = true
-        };
-
-        var producerConfig = new ProducerConfig
-        {
-            BootstrapServers = _kafkaOptions.BootstrapServers,
-            AllowAutoCreateTopics = true,
-            Acks = Acks.All,
-            MessageTimeoutMs = _kafkaOptions.ProduceTimeoutMs
-        };
-
-        using var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-        using var producer = new ProducerBuilder<string, string>(producerConfig).Build();
-
-        consumer.Subscribe(_kafkaOptions.ConsumerTopic);
+        _transactionConsumer.Subscribe(_kafkaOptions.ConsumerTopic);
         _logger.LogInformation("Worker consuming from topic {Topic}", _kafkaOptions.ConsumerTopic);
 
         var nextBatchCheck = DateTimeOffset.UtcNow;
@@ -55,10 +40,10 @@ public sealed class TransactionService(
         {
             try
             {
-                var record = consumer.Consume(TimeSpan.FromMilliseconds(200));
-                if (record?.Message is not null)
+                var record = _transactionConsumer.Consume(TimeSpan.FromMilliseconds(200));
+                if (record is not null)
                 {
-                    await ConsumeAndProcessAsync(record, producer, stoppingToken);
+                    await ConsumeAndProcessAsync(record, stoppingToken);
                 }
 
                 if (DateTimeOffset.UtcNow >= nextBatchCheck)
@@ -67,7 +52,7 @@ public sealed class TransactionService(
                     nextBatchCheck = DateTimeOffset.UtcNow.AddMilliseconds(_workerOptions.BatchIntervalMs);
                 }
             }
-            catch (ConsumeException ex)
+            catch (KafkaConsumerException ex)
             {
                 _logger.LogError(ex, "Kafka consume error");
             }
@@ -82,19 +67,17 @@ public sealed class TransactionService(
         }
 
         await CompleteBatchAsync(stoppingToken);
-        consumer.Close();
     }
 
     private async Task ConsumeAndProcessAsync(
-        ConsumeResult<string, string> consumedRecord,
-        IProducer<string, string> producer,
+        ConsumedMessage consumedRecord,
         CancellationToken cancellationToken)
     {
-        var key = consumedRecord.Message.Key;
-        var transaction = JsonSerializer.Deserialize<Transaction>(consumedRecord.Message.Value, JsonOptions.Serialization);
+        var key = consumedRecord.Key ?? string.Empty;
+        var transaction = JsonSerializer.Deserialize<Transaction>(consumedRecord.Value, JsonOptions.Serialization);
         if (transaction is null)
         {
-            _logger.LogWarning("Consumed null/invalid payload from Kafka: {Payload}", consumedRecord.Message.Value);
+            _logger.LogWarning("Consumed null/invalid payload from Kafka: {Payload}", consumedRecord.Value);
             return;
         }
 
@@ -113,26 +96,21 @@ public sealed class TransactionService(
         }
 
         var response = JsonSerializer.Serialize(transaction, JsonOptions.Serialization);
-        var outMsg = new Message<string, string>
+        var outgoingHeaders = new Dictionary<string, byte[]>();
+        if (consumedRecord.Headers.TryGetValue("correlationId", out var correlationIdHeader))
         {
-            Key = key,
-            Value = response,
-            Headers = []
-        };
-
-        var correlationIdHeader = consumedRecord.Message.Headers?.FirstOrDefault(h => h.Key == "correlationId");
-        if (correlationIdHeader is not null)
-        {
-            outMsg.Headers.Add("correlationId", correlationIdHeader.GetValueBytes());
+            outgoingHeaders["correlationId"] = correlationIdHeader;
         }
 
         _logger.LogInformation("Producing payload to Kafka with key {Key}: {@Transaction}", key, transaction);
-
         try
         {
-            await producer.ProduceAsync(_kafkaOptions.ProducerTopic, outMsg, cancellationToken);
+            await _transactionProducer.ProduceAsync(
+                _kafkaOptions.ProducerTopic,
+                new OutgoingMessage(key, response, outgoingHeaders),
+                cancellationToken);
         }
-        catch (ProduceException<string, string> ex)
+        catch (KafkaProducerException ex)
         {
             _logger.LogError(ex, "Kafka send failed");
         }
