@@ -16,9 +16,16 @@ var services = builder.Services;
 services.Configure<KafkaConfig>(builder.Configuration.GetSection("Kafka"));
 
 services.AddSingleton<TransactionRepository>();
-services.AddSingleton<TransactionService>();
 services.AddSingleton<TransactionConsumerBuilder>();
-services.AddHostedService<TransactionConsumer>();
+services.AddSingleton<TransactionConsumer>();
+services.AddSingleton<TransactionService>();
+
+services.AddHostedService(sp =>
+{
+    // TransactionService subscribes to the consumer's event in its constructor.
+    _ = sp.GetRequiredService<TransactionService>();
+    return sp.GetRequiredService<TransactionConsumer>();
+});
 
 services.AddControllers().AddJsonOptions(opts =>
 {

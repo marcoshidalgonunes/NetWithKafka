@@ -1,22 +1,21 @@
-using System.Text;
 using System.Text.Json;
-using Confluent.Kafka;
 using Microsoft.Extensions.Options;
 using Transactions.Bff.App.Config;
 using Transactions.Bff.Domain.Contracts;
 using Transactions.Bff.Domain.Models;
 using Transactions.Bff.Infrastructure.Kafka;
+using Transactions.Bff.Infrastructure.Messaging;
 using Transactions.Bff.Infrastructure.Options;
 
 namespace Transactions.Bff.App.Services;
 
 public sealed class TransactionService(
-    IProducer<string, string> producer,
+    TransactionProducer producer,
     CorrelationStore store,
     IOptions<KafkaConfig> options,
     ILogger<TransactionService> logger) : ITransaction
 {
-    private readonly IProducer<string, string> _producer = producer;
+    private readonly TransactionProducer _producer = producer;
     private readonly CorrelationStore _store = store;
     private readonly KafkaConfig _options = options.Value;
     private readonly ILogger<TransactionService> _logger = logger;
@@ -34,20 +33,9 @@ public sealed class TransactionService(
 
         var correlationId = Guid.NewGuid().ToString();
         var tcs = _store.CreatePending(correlationId);
-        var kafkaMessage = new Message<string, string>
-        {
-            Key = correlationId,
-            Value = JsonSerializer.Serialize(transaction, JsonOptions.Serialization),
-            Headers = new Headers
-            {
-                { "correlationId", Encoding.UTF8.GetBytes(correlationId) },
-                { "consumerTopic", Encoding.UTF8.GetBytes(_options.ConsumerTopic) }
-            }
-        };
-
         try
         {
-            await ProduceWithRetryAsync(_options.ProducerTopic, kafkaMessage, cancellationToken);
+            await _producer.ProduceAsync(correlationId, JsonSerializer.Serialize(transaction, JsonOptions.Serialization), cancellationToken);
 
             using var timeoutCts = new CancellationTokenSource(_options.TimeoutMs);
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
@@ -66,28 +54,6 @@ public sealed class TransactionService(
             _logger.LogError(ex, "Unexpected exception while waiting for reply");
             _store.Remove(correlationId);
             return null;
-        }
-    }
-
-    private async Task ProduceWithRetryAsync(string topic, Message<string, string> message, CancellationToken cancellationToken)
-    {
-        for (var attempt = 1; attempt <= _options.RetryMaxAttempts; attempt++)
-        {
-            try
-            {
-                await _producer.ProduceAsync(topic, message, cancellationToken).ConfigureAwait(false);
-                return;
-            }
-            catch (ProduceException<string, string> ex) when (attempt < _options.RetryMaxAttempts)
-            {
-                _logger.LogWarning(ex, "Kafka send failed, retrying {Attempt}/{MaxAttempts}", attempt, _options.RetryMaxAttempts);
-                await Task.Delay(_options.RetryBackoffMs, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Kafka send failed");
-                throw;
-            }
         }
     }
 }

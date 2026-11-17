@@ -73,7 +73,7 @@ public sealed class TransactionService(
         ConsumedMessage consumedRecord,
         CancellationToken cancellationToken)
     {
-        var key = consumedRecord.Key ?? string.Empty;
+        var correlationId = consumedRecord.Key ?? string.Empty;
         var transaction = JsonSerializer.Deserialize<Transaction>(consumedRecord.Value, JsonOptions.Serialization);
         if (transaction is null)
         {
@@ -96,19 +96,11 @@ public sealed class TransactionService(
         }
 
         var response = JsonSerializer.Serialize(transaction, JsonOptions.Serialization);
-        var outgoingHeaders = new Dictionary<string, byte[]>();
-        if (consumedRecord.Headers.TryGetValue("correlationId", out var correlationIdHeader))
-        {
-            outgoingHeaders["correlationId"] = correlationIdHeader;
-        }
 
-        _logger.LogInformation("Producing payload to Kafka with key {Key}: {@Transaction}", key, transaction);
+        _logger.LogInformation("Producing payload to Kafka with key {Key}: {@Transaction}", correlationId, transaction);
         try
         {
-            await _transactionProducer.ProduceAsync(
-                _kafkaOptions.ProducerTopic,
-                new OutgoingMessage(key, response, outgoingHeaders),
-                cancellationToken);
+            await _transactionProducer.ProduceAsync(correlationId, response, cancellationToken);
         }
         catch (KafkaProducerException ex)
         {

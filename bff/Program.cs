@@ -22,6 +22,7 @@ services.AddSingleton<CorrelationStore>();
 services.AddSingleton<TransactionConsumerBuilder>();
 services.AddSingleton<ITransaction, TransactionService>();
 services.AddHostedService<TransactionConsumer>();
+services.AddSingleton<TransactionProducer>();
 
 services.AddSingleton(sp =>
 {
