@@ -3,9 +3,9 @@ using Confluent.Kafka;
 using Microsoft.Extensions.Options;
 using Transactions.Worker.App.Config;
 
-namespace Transactions.Worker.Infrastructure.Kafka;
+namespace Transactions.Worker.Infrastructure.Messaging;
 
-public sealed class KafkaProducerException(string message, Exception innerException)
+public sealed class ProducerException(string message, Exception innerException)
     : Exception(message, innerException);
 
 public sealed class TransactionProducer(
@@ -40,7 +40,7 @@ public sealed class TransactionProducer(
         }
         catch (ProduceException<string, string> ex)
         {
-            throw new KafkaProducerException("Kafka send failed", ex);
+            throw new ProducerException("Kafka send failed", ex);
         }
     }
 

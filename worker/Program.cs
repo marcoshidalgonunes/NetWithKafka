@@ -1,9 +1,9 @@
 using Transactions.Worker.App.Config;
-using Transactions.Worker.Infrastructure.Clients;
 using Transactions.Worker.Domain.Contracts;
 using Transactions.Worker.App.Engine;
 using Transactions.Worker.App.Service;
-using Transactions.Worker.Infrastructure.Kafka;
+using Transactions.Worker.Infrastructure.Clients;
+using Transactions.Worker.Infrastructure.Messaging;
 
 var builder = Host.CreateApplicationBuilder(args);
 var configuration = builder.Configuration;

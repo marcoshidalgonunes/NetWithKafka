@@ -15,16 +15,16 @@ public sealed class TransactionConsumer(
     CorrelationStore store,
     ILogger<TransactionConsumer> logger) : BackgroundService
 {
-    private readonly KafkaConfig _options = options.Value;
+    private readonly KafkaConfig _config = options.Value;
     private readonly CorrelationStore _store = store;
     private readonly ILogger<TransactionConsumer> _logger = logger;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var consumer = await builder.Build();
-        consumer.Subscribe(_options.ConsumerTopic);
+        consumer.Subscribe(_config.ConsumerTopic);
 
-        _logger.LogInformation("Kafka reply consumer started on topic {Topic}", _options.ConsumerTopic);
+        _logger.LogInformation("Kafka reply consumer started on topic {Topic}", _config.ConsumerTopic);
 
         while (!stoppingToken.IsCancellationRequested)
         {

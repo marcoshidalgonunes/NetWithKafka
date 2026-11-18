@@ -5,7 +5,7 @@ using Transactions.Worker.Domain.Models;
 using Transactions.Worker.Infrastructure.Options;
 using Transactions.Worker.App.Engine;
 using Transactions.Worker.Domain.Contracts;
-using Transactions.Worker.Infrastructure.Kafka;
+using Transactions.Worker.Infrastructure.Messaging;
 
 namespace Transactions.Worker.App.Service;
 
@@ -52,7 +52,7 @@ public sealed class TransactionService(
                     nextBatchCheck = DateTimeOffset.UtcNow.AddMilliseconds(_workerOptions.BatchIntervalMs);
                 }
             }
-            catch (KafkaConsumerException ex)
+            catch (ConsumerException ex)
             {
                 _logger.LogError(ex, "Kafka consume error");
             }
@@ -102,7 +102,7 @@ public sealed class TransactionService(
         {
             await _transactionProducer.ProduceAsync(correlationId, response, cancellationToken);
         }
-        catch (KafkaProducerException ex)
+        catch (ProducerException ex)
         {
             _logger.LogError(ex, "Kafka send failed");
         }

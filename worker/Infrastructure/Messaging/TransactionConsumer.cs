@@ -2,24 +2,24 @@ using Confluent.Kafka;
 using Microsoft.Extensions.Options;
 using Transactions.Worker.App.Config;
 
-namespace Transactions.Worker.Infrastructure.Kafka;
+namespace Transactions.Worker.Infrastructure.Messaging;
 
 public sealed record ConsumedMessage(
     string? Key,
     string Value,
     IReadOnlyDictionary<string, byte[]> Headers);
 
-public sealed class KafkaConsumerException(string message, Exception innerException)
+public sealed class ConsumerException(string message, Exception innerException)
     : Exception(message, innerException);
 
 public sealed class TransactionConsumer(
-    IOptions<KafkaConfig> kafkaOptions
+    IOptions<KafkaConfig> options
 ) : IDisposable
 {
     private readonly IConsumer<string, string> _consumer = new ConsumerBuilder<string, string>(new ConsumerConfig
     {
-        BootstrapServers = kafkaOptions.Value.BootstrapServers,
-        GroupId = kafkaOptions.Value.ConsumerGroupId,
+        BootstrapServers = options.Value.BootstrapServers,
+        GroupId = options.Value.ConsumerGroupId,
         AutoOffsetReset = AutoOffsetReset.Earliest,
         EnableAutoCommit = true
     }).Build();
@@ -53,7 +53,7 @@ public sealed class TransactionConsumer(
         }
         catch (ConsumeException ex)
         {
-            throw new KafkaConsumerException("Kafka consume error", ex);
+            throw new ConsumerException("Kafka consume error", ex);
         }
     }
 

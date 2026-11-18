@@ -10,11 +10,11 @@ namespace Transactions.Backend.Infrastructure.Messaging;
 
 public sealed class TransactionConsumer(
     TransactionConsumerBuilder consumerBuilder,
-    IOptions<KafkaConfig> kafkaOptions,
+    IOptions<KafkaConfig> options,
     ILogger<TransactionConsumer> logger) : BackgroundService
 {
     private readonly TransactionConsumerBuilder _consumerBuilder = consumerBuilder;
-    private readonly KafkaConfig _config = kafkaOptions.Value;
+    private readonly KafkaConfig _config = options.Value;
     private readonly ILogger<TransactionConsumer> _logger = logger;
 
     public event Func<Transaction, CancellationToken, Task>? TransactionReceived;
